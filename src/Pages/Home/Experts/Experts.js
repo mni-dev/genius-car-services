@@ -20,6 +20,7 @@ const experts = [
 const Experts = () => {
     return (
         <div>
+            <div className="row">
             <h2 className='text-primary text-center'>Our Experts</h2>      
                 <div  className='experts-container'>
                     {
@@ -29,6 +30,7 @@ const Experts = () => {
                         ></Expert>)
                     }
                 </div>
+            </div>
         </div>
     );
 };
