@@ -1,17 +1,22 @@
  
-import React from 'react';
+import React, { useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCreateUserWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { useCreateUserWithEmailAndPassword, useUpdateProfile} from 'react-firebase-hooks/auth';
 import auth from '../../../firebase.init';
+import SocialLogin from '../SocialLogin/SocialLogin';
+import Loading from '../../Shared/Loading/Loading';
 
 const Register = () => {
+    const [agree, setAgree] = useState(false);
     const [
         createUserWithEmailAndPassword,
         user,
         loading,
         error,
-      ] = useCreateUserWithEmailAndPassword(auth);
+      ] = useCreateUserWithEmailAndPassword(auth, {sendEmailVerification: true});
+
+    const [updateProfile, updating, updateError] = useUpdateProfile(auth);
 
     const navigate = useNavigate();
 
@@ -19,47 +24,46 @@ const Register = () => {
         navigate('/login')
     }
 
+    if(loading || updating){
+        return <Loading></Loading>
+    }
+
     if(user){
-        navigate('/home');
+        console.log('user', user);
     }
 
     const handleRegister = event =>{
         event.preventDefault();
-        // const name = event.target.name.value;
+        const name = event.target.name.value;
         const email = event.target.email.value;
         const password = event.target.password.value;
 
         createUserWithEmailAndPassword(email, password);
+        updateProfile({ displayName: name });
+        console.log('Updated profile');
+        navigate('/home');
     }
-    return (
-        <div className='container mx-auto w-50'>
-            <h1>Please Register</h1>
-            <Form onSubmit={handleRegister}>
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                    <Form.Label>Email address</Form.Label>
-                    <Form.Control type="email"  name="email" placeholder="Enter email" />
-                    <Form.Text className="text-muted">
-                        We'll never share your email with anyone else.
-                    </Form.Text>
-                </Form.Group>
 
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" name="password" placeholder="Password" />
-                </Form.Group>
+        return (
+        <div className='register-form'>
+            <h2 style={{ textAlign: 'center' }}>Please Register</h2>
+            <form onSubmit={handleRegister}>
+                <input type="text" name="name" id="" placeholder='Your Name' />
 
-                {/* <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Confirm Password</Form.Label>
-                    <Form.Control type="password" placeholder="Confirm Password" />
-                </Form.Group> */}
-                <Form.Group className="mb-3" controlId="formBasicCheckbox">
-                    <Form.Check type="checkbox" label="Check me out" />
-                </Form.Group>
-                <Button variant="primary" type="submit">
-                    Submit
-                </Button>
-                <p>Already have an account?<Link to='/login' className='text-danger text-decoration-none pe-auto' onClick={navigateLogin}> Please Login</Link></p>
-            </Form>
+                <input type="email" name="email" id="" placeholder='Email Address' required />
+
+                <input type="password" name="password" id="" placeholder='Password' required />
+                <input onClick={() => setAgree(!agree)} type="checkbox" name="terms" id="terms" />
+                {/* <label className={agree ? 'ps-2': 'ps-2 text-danger'} htmlFor="terms">Accept Genius Car Terms and Conditions</label> */}
+                <label className={`ps-2 ${agree ? '' : 'text-danger'}`} htmlFor="terms">Accept Genius Car Terms and Conditions</label>
+                <input
+                    disabled={!agree}
+                    className='w-50 mx-auto btn btn-primary mt-2'
+                    type="submit"
+                    value="Register" />
+            </form>
+            <p>Already have an account? <Link to="/login" className='text-primary pe-auto text-decoration-none' onClick={navigateLogin}>Please Login</Link> </p>
+            <SocialLogin></SocialLogin>
         </div>
     );
 };
